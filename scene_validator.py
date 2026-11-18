@@ -24,6 +24,8 @@ for obj in bpy.data.objects:
         # 1. Naming Convention Check
         if not obj.name.startswith(fixed_pre):
             bad_names.append(obj.name)
+            # prepends
+            obj.name = f"SM_{obj.name}"
             
         # 2. Polygon Limit Check
         poly_count = len(obj.data.polygons)
@@ -43,6 +45,14 @@ for obj in bpy.data.objects:
                     missing_textures.append(obj.name)
             else:
                 missing_materials.append(obj.name)
+         # 4. Unapplied Scale Check
+        if any(round(axis, 4) != 1.0 for axis in obj.scale):
+            unapplied_scales.append(obj.name)
+            bpy.ops.object.select_all(action='DESELECT')
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.object.transform_apply(location = False, rotation = False, scale = True)
+            obj.select_set(False)
              
 # ===============================
 # Summary Output
@@ -66,6 +76,10 @@ for name in missing_materials:
 print(f"\n[!] Missing Image Textures: {len(missing_textures)}")
 for name in missing_textures:
   print(f"    - {name}")
+
+print(f"\n[!] Unscaled Meshes: {len(unapplied_scales)}")
+for name in unapplied_scales:
+    print(f"  -{name}")
 
 print("\n" + "=" * 40)
 print("              AUDIT COMPLETE               ")
